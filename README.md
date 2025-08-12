@@ -180,6 +180,12 @@ neogit.setup {
       ["?"] = "",
     },
   },
+  -- Skip diff computation for these file patterns to prevent freezing
+  skip_diff_file_patterns = {
+    "%.enc$",
+    "%.doc$",
+    "%.xls$",
+  },
   commit_editor = {
     kind = "tab",
     show_staged_diff = true,
