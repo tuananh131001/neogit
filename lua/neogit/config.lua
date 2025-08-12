@@ -453,6 +453,12 @@ function M.get_default_values()
         ["?"] = "",
       },
     },
+    -- Skip diff computation for these file patterns to prevent freezing
+    skip_diff_file_patterns = {
+      "%.enc$",
+      "%.doc$",
+      "%.xls$",
+    },
     commit_editor = {
       kind = "tab",
       show_staged_diff = true,
@@ -1175,6 +1181,8 @@ function M.validate_config()
       validate_type(config.status.HEAD_padding, "status.HEAD_padding", "number")
       validate_type(config.status.mode_text, "status.mode_text", "table")
     end
+    validate_type(config.skip_diff_file_patterns, "skip_diff_file_patterns", "table")
+
     validate_signs()
     validate_trinary_auto(config.disable_insert_on_commit, "disable_insert_on_commit")
     -- Commit Editor

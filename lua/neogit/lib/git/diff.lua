@@ -241,14 +241,41 @@ local function parse_diff(raw_diff, raw_stats)
   }
 end
 
+---@param filename string
+---@return boolean
+local function is_binary_or_encrypted_file(filename)
+  local config = require("neogit.config")
+  local patterns = config.values.skip_diff_file_patterns or {}
+
+  for _, pattern in ipairs(patterns) do
+    if filename:match(pattern) then
+      return true
+    end
+  end
+
+  return false
+end
+
 local function build_metatable(f, raw_output_fn)
   setmetatable(f, {
     __index = function(self, method)
       if method == "diff" then
-        self.diff = a.util.block_on(function()
-          logger.debug("[DIFF] Loading diff for: " .. f.name)
-          return parse_diff(unpack(raw_output_fn()))
-        end)
+        if is_binary_or_encrypted_file(f.name) then
+          logger.debug("[DIFF] Skipping diff for binary/encrypted file: " .. f.name)
+          self.diff = {
+            kind = "binary",
+            lines = { "Binary file (diff not shown)" },
+            file = f.name,
+            info = { "Binary or encrypted file" },
+            stats = { additions = 0, deletions = 0 },
+            hunks = {},
+          }
+        else
+          self.diff = a.util.block_on(function()
+            logger.debug("[DIFF] Loading diff for: " .. f.name)
+            return parse_diff(unpack(raw_output_fn()))
+          end)
+        end
 
         return self.diff
       end
